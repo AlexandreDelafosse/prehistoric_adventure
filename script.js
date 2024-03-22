@@ -1,5 +1,6 @@
 import Phaser from "./phaser.js";
 import { obstacles } from "./sprites/obstacles.js";
+import { speechBox } from "./components/speechBox.js";
 
 class GameComponent extends Phaser.Scene {
   // in this format: {name: "rock_1", type: "rock" xCoordinates: 200, yCoordinates: 300}
@@ -120,6 +121,10 @@ class GameComponent extends Phaser.Scene {
       frameWidth: 32,
       frameHeight: 32,
     });
+    this.load.spritesheet("npc_2", "../../assets/npc_2.png", {
+      frameWidth: 32,
+      frameHeight: 32,
+    });
   }
 
   create() {
@@ -132,9 +137,10 @@ class GameComponent extends Phaser.Scene {
     // Création du joueur
     this.player = this.physics.add.image(100, 100, "player").setScale(0.1);
     this.player.setCollideWorldBounds(true);
+    this.cursors = this.input.keyboard.createCursorKeys();
+    var keyE = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.E);
 
     for (let index = 0; index < 4; index++) {
-      // rad number between 100 and 500
       let truc = [375, 700, 520, 840];
       let truc2 = [150, 120, 470, 470];
       const x = truc[index];
@@ -149,38 +155,75 @@ class GameComponent extends Phaser.Scene {
 
     const npc_1 = obstacles({
       name: "npc_1",
-      xCoordinates: 200,
-      yCoordinates: 200,
+      type: "npc",
+      xCoordinates: 520,
+      yCoordinates: 320,
       spriteNumber: 0,
     }).create.call(this);
+
+    const npc_2 = obstacles({
+      name: "npc_2",
+      type: "npc",
+      xCoordinates: 220,
+      yCoordinates: 320,
+      spriteNumber: 0,
+    }).create.call(this);
+
+    let isKeyPressed = false;
+    let currentNPC = null;
     this.physics.add.collider(this.player, npc_1, () => {
-      console.log("collision with npc_1");
+      currentNPC = npc_1;
+    });
+    this.physics.add.collider(this.player, npc_2, () => {
+      currentNPC = npc_2;
     });
 
-    // Définition des collisions avec les obstacles
-    // this.obstaclesArray.forEach((obstacle) => {
-    //   const obstacleInstance = obstacles(obstacle).create.call(this);
-    //   obstacleInstance.position = {
-    //     x: obstacle.xCoordinates,
-    //     y: obstacle.yCoordinates,
-    //   };
+    keyE.on("down", () => {
+      if (!isKeyPressed && currentNPC) {
+        isKeyPressed = true;
+        if (currentNPC === npc_1) {
+          speechBox("Hello there !", npc_1).create.call(this);
 
-    //   // Gestion des collisions avec le joueur
-    //   this.physics.add.collider(this.player, obstacleInstance);
-
-    // });
-
-    // Créez un nouvel objet Graphics
-    let graphics = this.add.graphics();
-    // Définissez le style de ligne (épaisseur, couleur)
-    graphics.lineStyle(1, 0xffffff, 0.8);
-    // Dessinez une grille
-    const sceneScale = 50;
-    for (let x = 0; x < this.scale.width; x += sceneScale) {
-      for (let y = 0; y < this.scale.height; y += sceneScale) {
-        graphics.strokeRect(x, y, sceneScale, sceneScale);
+          const choices = ["General Kenobi", "Hi!"];
+          speechBox("Choose an option:", npc_1).create.call(this);
+          choices.forEach((choice, index) => {
+            const text = this.add.text(
+              npc_1.x,
+              npc_1.y + 20 * (index + 1),
+              choice,
+              {
+                fontSize: "16px",
+                color: "#000000",
+                backgroundColor: "#ffffff",
+                padding: {
+                  x: 10,
+                  y: 5,
+                },
+              }
+            );
+            text.setInteractive();
+            text.on("pointerdown", () => {
+              // Handle the choice here
+              if (index === 0) {
+                speechBox("You are a bold one", npc_1).create.call(this);
+              } else if (index === 1) {
+                console.log("Hi!");
+                game.scene.destroy();
+                game.scene.stop();
+              }
+              text.destroy();
+              // speechBox("", npc_1).destroy.call(this);
+            });
+          });
+        } else if (currentNPC === npc_2) {
+          speechBox("Hey! you're finaly awake ...", npc_2).create.call(this);
+        }
+        setTimeout(() => {
+          isKeyPressed = false;
+        }, 2000);
+        console.log(isKeyPressed);
       }
-    }
+    });
 
     // Gestion des contrôles de déplacement
     this.cursors = this.input.keyboard.createCursorKeys();

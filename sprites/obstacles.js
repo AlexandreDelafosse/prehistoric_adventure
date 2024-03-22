@@ -19,11 +19,12 @@ export const obstacles = (obstacleInfos) => ({
       );
       
     } else {
-      this.square = this.physics.add.image(
+      this.square = this.physics.add.sprite(
         obstacleInfos["xCoordinates"],
         obstacleInfos["yCoordinates"],
         obstacleInfos["name"]
       );
+      this.square.setScale(0.08);
     }
     // this.square.setScale(0.08);
     this.square.width = 20;
@@ -32,9 +33,5 @@ export const obstacles = (obstacleInfos) => ({
     this.square.setGravityY(0);
 
     return this.square;
-  },
-
-  // update(time, delta) {
-  //     this.player.body.setVelocity(0);
-  // }
+  }
 });
