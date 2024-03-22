@@ -107,80 +107,65 @@ class GameComponent extends Phaser.Scene {
     },
   ];
 
+  
   preload() {
     this.load.image("player", "../../assets/player.png");
     obstacles({ name: "rock_1" }).preload.call(this);
     obstacles({ name: "tree_1" }).preload.call(this);
+    this.load.image("background", "assets/background.png");
   }
 
   create() {
-    this.player = this.physics.add.image(100, 100, "player");
-    this.player.setScale(0.1);
-    this.player.width = 40;
-    this.player.height = 40;
+    // Ajout du fond d'écran
+    this.background = this.add
+      .image(0, 0, "background")
+      .setOrigin(0)
+      .setDisplaySize(window.innerWidth, window.innerHeight);
+
+    // Création du joueur
+    this.player = this.physics.add.image(100, 100, "player").setScale(0.1);
     this.player.setCollideWorldBounds(true);
 
-    this.physics.world.bounds.setTo(0, 0, this.scale.width, this.scale.height);
-    this.physics.world.setBoundsCollision(true, true, true, true);
-    this.cursors = this.input.keyboard.createCursorKeys();
-    var keyE = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.E);
-
-    for (let i = 0; i < this.obstaclesArray.length; i++) {
-      const obstacle = this.obstaclesArray[i];
-      this[obstacle.name + i] = obstacles(obstacle).create.call(this);
-      this[obstacle.name + i].position = {
+    // Définition des collisions avec les obstacles
+    this.obstaclesArray.forEach(obstacle => {
+      const obstacleInstance = obstacles(obstacle).create.call(this);
+      obstacleInstance.position = {
         x: obstacle.xCoordinates,
         y: obstacle.yCoordinates,
       };
 
-      let isKeyPressed = false;
-      this.physics.add.collider(this.player, this[obstacle.name + i], () => {
-        keyE.on("down", () => {
-          if (!isKeyPressed) {
-            console.log("this is a ", obstacle.type);
-            isKeyPressed = true;
-          }
-        });
-      });
-    }
+      // Gestion des collisions avec le joueur
+      this.physics.add.collider(this.player, obstacleInstance);
+    });
+
+    // Gestion des contrôles de déplacement
+    this.cursors = this.input.keyboard.createCursorKeys();
   }
 
   update(time, delta) {
     this.player.body.setVelocity(0);
 
-    // Horizontal movement
+    // Déplacement horizontal
     if (this.cursors.left.isDown) {
       this.player.body.setVelocityX(-300);
     } else if (this.cursors.right.isDown) {
       this.player.body.setVelocityX(300);
     }
 
-    // Vertical movement
+    // Déplacement vertical
     if (this.cursors.up.isDown) {
       this.player.body.setVelocityY(-300);
     } else if (this.cursors.down.isDown) {
       this.player.body.setVelocityY(300);
     }
-
-    // Update the animation last and give left/right animations precedence over up/down animations
-    // if (this.cursors.left.isDown) {
-    //   this.player.anims.play("left", true);
-    // } else if (this.cursors.right.isDown) {
-    //   this.player.anims.play("right", true);
-    // } else if (this.cursors.up.isDown) {
-    //   this.player.anims.play("up", true);
-    // } else if (this.cursors.down.isDown) {
-    //   this.player.anims.play("down", true);
-    // } else {
-    //   this.player.anims.stop();
-    // }
   }
 }
 
+// Configuration du jeu
 const config = {
   type: Phaser.AUTO,
-  width: 800,
-  height: 600,
+  width: window.innerWidth,
+  height: window.innerHeight,
   physics: {
     default: "arcade",
     arcade: {
@@ -191,4 +176,5 @@ const config = {
   scene: [GameComponent],
 };
 
+// Création de l'instance du jeu
 const game = new Phaser.Game(config);
