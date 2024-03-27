@@ -1,4 +1,5 @@
 import Phaser from "./phaser.js";
+import NewScene from "./scenes/NewScene.js";
 import { obstacles } from "./sprites/obstacles.js";
 import { player } from "./scripts/player/player.js"
 
@@ -71,8 +72,8 @@ class GameComponent extends Phaser.Scene {
 
 const config = {
   type: Phaser.AUTO,
-  width: 960,  
-  height: 640, 
+  width: 960,
+  height: 640,
   physics: {
     default: "arcade",
     arcade: {
@@ -80,7 +81,6 @@ const config = {
       gravity: { x: 0, y: 0 },
     },
   },
-  scene: [GameComponent],
+  scene: [GameComponent, NewScene], // Ajoutez NewScene ici
 };
-
 const game = new Phaser.Game(config);
