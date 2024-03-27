@@ -9,21 +9,29 @@ export const obstacles = (obstacleInfos) => ({
     );
   },
   create() {
-    this.square = this.physics.add.image(
-      obstacleInfos["xCoordinates"],
-      obstacleInfos["yCoordinates"],
-      obstacleInfos["name"]
-    );
-    this.square.setScale(0.08);
+    console.log("obstacleInfos", obstacleInfos);
+    if (obstacleInfos.spriteNumber !== undefined && obstacleInfos.spriteNumber !== null) {
+      this.square = this.physics.add.sprite(
+        obstacleInfos["xCoordinates"],
+        obstacleInfos["yCoordinates"],
+        obstacleInfos["name"],
+        obstacleInfos["spriteNumber"]
+      );
+      
+    } else {
+      this.square = this.physics.add.sprite(
+        obstacleInfos["xCoordinates"],
+        obstacleInfos["yCoordinates"],
+        obstacleInfos["name"]
+      );
+      this.square.setScale(0.08);
+    }
+    // this.square.setScale(0.08);
     this.square.width = 20;
     this.square.height = 20;
     this.square.setImmovable(true);
     this.square.setGravityY(0);
 
     return this.square;
-  },
-
-  // update(time, delta) {
-  //     this.player.body.setVelocity(0);
-  // }
+  }
 });
