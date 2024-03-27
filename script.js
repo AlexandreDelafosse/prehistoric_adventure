@@ -1,13 +1,10 @@
 import Phaser from "./phaser.js";
+import NewScene from "./scenes/NewScene.js";
 import { obstacles } from "./sprites/obstacles.js";
 import { speechBox } from "./components/speechBox.js";
+import { player } from "./scripts/player/player.js"
 
 class GameComponent extends Phaser.Scene {
-  // in this format: {name: "rock_1", type: "rock" xCoordinates: 200, yCoordinates: 300}
-  // name can either be "tree_1" or "rock_1"
-  // type can either be "tree" or "rock"
-  // xCoordinates is between 100 and 700
-  // yCoordinates is between 100 and 500
 
   obstaclesArray = [
     {
@@ -17,106 +14,21 @@ class GameComponent extends Phaser.Scene {
       yCoordinates: 300,
     },
     {
-      name: "rock_1",
-      type: "rock",
-      xCoordinates: 300,
-      yCoordinates: 400,
-    },
-    {
-      name: "rock_1",
-      type: "rock",
-      xCoordinates: 400,
-      yCoordinates: 500,
-    },
-    {
-      name: "rock_1",
-      type: "rock",
-      xCoordinates: 500,
-      yCoordinates: 200,
-    },
-    {
-      name: "rock_1",
-      type: "rock",
-      xCoordinates: 600,
-      yCoordinates: 300,
-    },
-    {
-      name: "rock_1",
-      type: "rock",
-      xCoordinates: 700,
-      yCoordinates: 400,
-    },
-    {
       name: "tree_1",
       type: "tree",
       xCoordinates: 350,
       yCoordinates: 150,
     },
-    {
-      name: "tree_1",
-      type: "tree",
-      xCoordinates: 200,
-      yCoordinates: 200,
-    },
-    {
-      name: "tree_1",
-      type: "tree",
-      xCoordinates: 300,
-      yCoordinates: 300,
-    },
-    {
-      name: "tree_1",
-      type: "tree",
-      xCoordinates: 400,
-      yCoordinates: 400,
-    },
-    {
-      name: "tree_1",
-      type: "tree",
-      xCoordinates: 500,
-      yCoordinates: 500,
-    },
-    {
-      name: "tree_1",
-      type: "tree",
-      xCoordinates: 600,
-      yCoordinates: 100,
-    },
-    {
-      name: "tree_1",
-      type: "tree",
-      xCoordinates: 700,
-      yCoordinates: 200,
-    },
-    {
-      name: "tree_1",
-      type: "tree",
-      xCoordinates: 100,
-      yCoordinates: 300,
-    },
-    {
-      name: "tree_1",
-      type: "tree",
-      xCoordinates: 200,
-      yCoordinates: 400,
-    },
-    {
-      name: "tree_1",
-      type: "tree",
-      xCoordinates: 300,
-      yCoordinates: 500,
-    },
   ];
 
   preload() {
-    this.load.image("player", "../../assets/player.png");
+    this.load.tilemapTiledJSON('map', '../../assets/testmap.json');
+    player({ name: "player" }).preload.call(this);
     obstacles({ name: "rock_1" }).preload.call(this);
     obstacles({ name: "tree_1" }).preload.call(this);
-    this.load.image("background", "assets/background.png");
-    this.load.spritesheet("houses", "../../assets/houses.png", {
-      frameWidth: 160,
-      frameHeight: 160,
-    });
+    // Assurez-vous que les chemins vers les images des tilesets sont corrects
+    this.load.image('summer', '../../assets/summer.png');
+    this.load.image('houses', '../../assets/houses.png');
     this.load.spritesheet("npc_1", "../../assets/npc_1.png", {
       frameWidth: 32,
       frameHeight: 32,
@@ -127,36 +39,27 @@ class GameComponent extends Phaser.Scene {
     });
   }
 
-  create() {
-    // Ajout du fond d'écran
-    this.background = this.add
-      .image(0, 0, "background")
-      .setOrigin(0)
-      .setDisplaySize(window.innerWidth, window.innerHeight);
+  create() {    // Création du joueur
+    const map = this.make.tilemap({ key: 'map' });
+    const tilesetSummer = map.addTilesetImage('summer', 'summer');
+    const tilesetHouses = map.addTilesetImage('houses', 'houses');
 
-    // Création du joueur
-    this.player = this.physics.add.image(100, 100, "player").setScale(0.1);
-    this.player.setCollideWorldBounds(true);
-    this.cursors = this.input.keyboard.createCursorKeys();
-    var keyE = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.E);
+    const layerFond = map.createLayer('fond', tilesetSummer, 0, 0);
+    const layerMaison = map.createLayer('maison', tilesetHouses, 0, 0);
+    const layerbush = map.createLayer('bushs', tilesetSummer, 0, 0);
 
-    for (let index = 0; index < 4; index++) {
-      let truc = [375, 700, 520, 840];
-      let truc2 = [150, 120, 470, 470];
-      const x = truc[index];
-      const y = truc2[index];
-      let house = this.physics.add.sprite(x, y, "houses", index);
-      house.setScale(1.25);
-      house.width = 200;
-      house.height = 200;
-      house.setImmovable(true);
-      this.physics.add.collider(this.player, house);
-    }
+    const playerInstance = player(player).create.call(this);
+
+    layerMaison.setCollisionByProperty({ collision: true });
+    this.physics.add.collider(this.player, layerMaison);
+
+    layerbush.setCollisionByProperty({ collision: true });
+    this.physics.add.collider(this.player, layerbush);
 
     const npc_1 = obstacles({
       name: "npc_1",
       type: "npc",
-      xCoordinates: 520,
+      xCoordinates: 720,
       yCoordinates: 320,
       spriteNumber: 0,
     }).create.call(this);
@@ -177,6 +80,8 @@ class GameComponent extends Phaser.Scene {
     this.physics.add.collider(this.player, npc_2, () => {
       currentNPC = npc_2;
     });
+
+    var keyE = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.E);
 
     keyE.on("down", () => {
       if (!isKeyPressed && currentNPC) {
@@ -230,29 +135,14 @@ class GameComponent extends Phaser.Scene {
   }
 
   update(time, delta) {
-    this.player.body.setVelocity(0);
-
-    // Déplacement horizontal
-    if (this.cursors.left.isDown) {
-      this.player.body.setVelocityX(-300);
-    } else if (this.cursors.right.isDown) {
-      this.player.body.setVelocityX(300);
-    }
-
-    // Déplacement vertical
-    if (this.cursors.up.isDown) {
-      this.player.body.setVelocityY(-300);
-    } else if (this.cursors.down.isDown) {
-      this.player.body.setVelocityY(300);
-    }
+    const playerInstance = player(player).update.call(this);
   }
 }
 
-// Configuration du jeu
 const config = {
   type: Phaser.AUTO,
-  width: window.innerWidth,
-  height: window.innerHeight,
+  width: 960,
+  height: 640,
   physics: {
     default: "arcade",
     arcade: {
@@ -260,7 +150,7 @@ const config = {
       gravity: { x: 0, y: 0 },
     },
   },
-  scene: [GameComponent],
+  scene: [GameComponent, NewScene], // Ajoutez NewScene ici
 };
 
 // Création de l'instance du jeu
